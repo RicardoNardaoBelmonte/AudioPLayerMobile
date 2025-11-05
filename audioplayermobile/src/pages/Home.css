@@ -1,0 +1,14 @@
+.loginBtn{
+    --color: black;
+}
+
+.registerBtn{
+    --color: black;
+}
+
+@media(min-width: 375px){
+    .logo{
+        display: flex;
+        justify-content: center;
+    }
+}
