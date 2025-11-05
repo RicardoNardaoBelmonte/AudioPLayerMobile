@@ -25,7 +25,14 @@ ion-header, ion-toolbar{
 
 ion-button {
   --background-activated: transparent;
+  --background: transparent;
   --ripple-color: transparent;
+}
+
+ion-input {
+  --highlight-color-focused: transparent !important;
+  --highlight-color: white !important;
+  --highlight-height: 0 !important;
 }
 
 /* @layer utilities {
