@@ -1,0 +1,7 @@
+{
+  "name": "audioplayermobile",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}
