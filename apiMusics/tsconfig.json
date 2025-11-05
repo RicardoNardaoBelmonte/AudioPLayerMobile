@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    // Diretórios de origem e saída
+    "rootDir": "",
+    "outDir": "./dist",
+
+    // Módulos e target
+    "module": "nodenext",
+    "target": "es2022",
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+
+    // Tipos
+    "types": ["node"],
+
+    // Saída
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+
+    // Checagem estrita
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // Compatibilidade
+    "isolatedModules": true,
+    "noEmitOnError": true
+  },
+  "include": ["*.ts", "**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
