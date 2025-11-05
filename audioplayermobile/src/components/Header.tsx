@@ -3,36 +3,52 @@ import hamburguer from '../../public/menu-outline.svg';
 import { IHeader } from "../interfaces/interfcaes";
 import logo from '../../public/assets/logo.png';
 
-const Header: React.FC <IHeader>  = ({isOpen, setIsOpen}) => {
+
+const Header: React.FC <IHeader>  = ({isOpen, setIsOpen, setVisibleFormUsuarios, setTipoFormUsuarios, setIsLogged, isLogged, nome, setNome}) => {
 
     function hamburguerRotate(e: React.MouseEvent<HTMLIonButtonElement>): void{
         e.preventDefault();
         setIsOpen(!isOpen);
     }
 
+    function handleLogout(e: React.MouseEvent<HTMLIonButtonElement>): void{
+      e.preventDefault();
+      setIsLogged(false);
+      localStorage.removeItem('token');
+      localStorage.removeItem('nome');
+      setNome("");
+      alert("Usuário deslogado com sucesso!");
+    }
+
     return(<>
       <IonHeader> 
               <IonToolbar>
-                <div className="relative flex items-center justify-round gap-5">
-                  <div>
+                <div className="grid grid-cols-3 items-center w-full">
+                  <div className="flex justify-start ml-2">
                     <IonButtons>
                       <IonButton className={`hamburguer transition-transform duration-300 ${ isOpen ? "rotate-180" : "-rotate-180"}`}onClick={hamburguerRotate}>
-                        <IonIcon icon={hamburguer}/>
+                        <IonIcon className="w-8 h-8" icon={hamburguer}/>
                       </IonButton>
                     </IonButtons>
                   </div>
 
-                  <div>
+                  <div className="logo">
                     <img className="w-10 h-10" src={logo} alt="Imagem logotipo do aplicativo"/>
                   </div>
-      
-                  <div className="flex">
-                    <IonButtons>
-                      <IonButton className="w-16 text-sm">Login</IonButton>
-                      <IonButton>Register</IonButton>
-                    </IonButtons>
+        
+                  <div className="flex justify-end mr-1">
+                    { isLogged ? (
+                      <IonButtons class="flex gap-1"> 
+                        <span className="text-sm capitalize bg-background p-1 px-2 border border-borderGray rounded h-8 text-white">{nome}</span>
+                        <IonButton className="text-xs capitalize rounded bg-red-500 w-15" onClick={(e) => {handleLogout(e)}}>Sair</IonButton>
+                      </IonButtons>
+                    ) : (
+                      <IonButtons class="flex gap-1"> 
+                        <IonButton className="loginBtn text-xs capitalize bg-primary border border-black rounded w-12" onClick={() => {setVisibleFormUsuarios(true); setTipoFormUsuarios('Logar')}}>Logar</IonButton>
+                        <IonButton className="registerBtn text-xs capitalize border border-black rounded bg-green-500 w-17" onClick={() => {setVisibleFormUsuarios(true); setTipoFormUsuarios('Registrar')}}>Registrar</IonButton>
+                      </IonButtons>
+                    )}
                   </div>
-
                 </div>
             </IonToolbar>
         </IonHeader>
