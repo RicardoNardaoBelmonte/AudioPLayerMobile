@@ -10,15 +10,18 @@ const Home: React.FC = () => {
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [visibleFormUsuarios, setVisibleFormUsuarios] = useState<boolean>(false);
+  const [tipoFormUsuarios, setTipoFormUsuarios] = useState<string>("");
+  const [isLogged, setIsLogged] = useState<boolean>(false);
+  const [nome, setNome] = useState<string>("");
 
   return (
     <IonPage>
       /* Header da pagina */
      {<DropdownMenu isOpen={isOpen} />}
-     { visibleFormUsuarios && <FormUsuarios visibleFormUsuarios={visibleFormUsuarios} setVisibleFormUsuarios={setVisibleFormUsuarios} />}
+     { visibleFormUsuarios && <FormUsuarios setVisibleFormUsuarios={setVisibleFormUsuarios} tipoFormUsuarios={tipoFormUsuarios} setNome={setNome} setIsLogged={setIsLogged}/>}
         <IonHeader>
           <IonToolbar>
-            <Header isOpen={isOpen} setIsOpen={setIsOpen}/>
+            <Header isOpen={isOpen} setIsOpen={setIsOpen} setVisibleFormUsuarios={setVisibleFormUsuarios} setTipoFormUsuarios={setTipoFormUsuarios} isLogged={isLogged} setIsLogged={setIsLogged} nome={nome} setNome={setNome}/>
           </IonToolbar>
         </IonHeader>
         /* Corpo da pagina */
