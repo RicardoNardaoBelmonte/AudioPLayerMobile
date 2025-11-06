@@ -27,12 +27,17 @@ ion-button {
   --background-activated: transparent;
   --background: transparent;
   --ripple-color: transparent;
+  --box-shadow: none;
 }
 
 ion-input {
   --highlight-color-focused: transparent !important;
   --highlight-color: white !important;
   --highlight-height: 0 !important;
+}
+
+ion-router-link{
+  --color: #2c2c2c;
 }
 
 /* @layer utilities {
