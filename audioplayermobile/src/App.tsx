@@ -35,26 +35,49 @@ import '@ionic/react/css/palettes/dark.system.css';
 
 /* Theme variables */
 import './theme/variables.css';
+import Favs from './pages/Favs';
+import Header from './components/Header';
+import { useState } from 'react';
+import DropdownMenu from './components/DropdownMenu';
+import FormUsers from './components/FormUsers';
 
 setupIonicReact();
 
 const queryClient = new QueryClient();
 
-const App: React.FC = () => (
+
+
+const App: React.FC = () =>{ 
+  const [nome, setNome] = useState<string>("");
+  const [isLogged, setIsLogged] = useState<boolean>(false);
+  const [tipoFormUsuarios, setTipoFormUsuarios] = useState<string>("");
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [visibleFormUsuarios, setVisibleFormUsuarios] = useState<boolean>(false);
+
+
+
+  return(
   <IonApp>
     <QueryClientProvider client={queryClient}>
       <IonReactRouter>
+          {<DropdownMenu isOpen={isOpen} />}
+          { visibleFormUsuarios && <FormUsers setVisibleFormUsuarios={setVisibleFormUsuarios} tipoFormUsuarios={tipoFormUsuarios} setNome={setNome} setIsLogged={setIsLogged}/>}
+          <Header isOpen={isOpen} setIsOpen={setIsOpen} setVisibleFormUsuarios={setVisibleFormUsuarios} setTipoFormUsuarios={setTipoFormUsuarios} isLogged={isLogged} setIsLogged={setIsLogged} nome={nome} setNome={setNome}/>
         <IonRouterOutlet>
             <Route exact path="/home">
-              <Home />
+              <Home/>
             </Route>
             <Route exact path="/">
               <Redirect to="/home" />
+            </Route>
+            <Route exact path="/favs">
+              <Favs/>
             </Route>
         </IonRouterOutlet>
       </IonReactRouter>
     </QueryClientProvider>
   </IonApp>
-);
+  )
+};
 
 export default App;

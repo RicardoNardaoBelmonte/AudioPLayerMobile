@@ -17,7 +17,7 @@ export interface IUsuario{
 export interface IMusicSpotfy{
     nome: string;
     artista: string;
-    thumb: string | null;
+    thumb: string | undefined;
     duracao: number;
 }
 
@@ -30,4 +30,14 @@ interface SpotifyTrack {
 
 export interface SpotifyResponse {
   tracks: { items: SpotifyTrack[] };
+}
+
+export interface ImusicsDb {
+    id: number;
+    titulo: string;
+    artista: string;
+    path: string;
+    thumb: string;
+    duracao: string;
+    usuario_id: number;
 }

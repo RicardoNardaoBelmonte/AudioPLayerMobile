@@ -21,3 +21,9 @@ export interface IFormUsuarios {
     setNome: Dispatch<SetStateAction<string>>;
     setIsLogged: Dispatch<SetStateAction<boolean>>;
 }
+
+export interface IModal {
+    isOpen: boolean;
+    closed: () => void;
+    children: React.ReactNode;
+}

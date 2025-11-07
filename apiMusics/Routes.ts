@@ -1,4 +1,5 @@
 import {criarUsuario, buscarUsuario, criarMusica, deletarMusica, listarMusicas} from './db.js';
+import { buscarMusica } from "./fetchMusicas.js";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
@@ -15,49 +16,49 @@ interface TokenPayload {
   nome: string;
 }
 
-//middleware para verificaÁ„o de token para utilizar em login e outros mÈtodos que requerem token
+//middleware para verificaÔøΩÔøΩo de token para utilizar em login e outros mÔøΩtodos que requerem token
 function verifyToken(req: Request) {
   const authHeader = req.headers['authorization'];
 
   if (!authHeader) {
-    return { error: "VocÍ precisa estar logado", status: 401 };
+    return { error: "Voc√™ precisa estar logado", status: 401 };
   }
 
   const token = authHeader.split(" ")[1];
 
-  if (!token) throw new Error("Token n„o encontrado!");
+  if (!token) throw new Error("Token n√£o encontrado!");
 
   try {
     const payload = jwt.verify(token, process.env.SECRET_KEY!) as unknown as TokenPayload;
     return { payload };
   } catch (e) {
-    return { error: "Login inv·lido ou expirado", status: 401 };
+    return { error: "Login inv√°lido ou expirado", status: 401 };
   }
 }
 
-//funÁ„o para converter para minutos e segundos
+//funÔøΩÔøΩo para converter para minutos e segundos
 function msToMinutesAndSeconds(ms: number) {
     const minutes = Math.floor(ms / 60000); 
     const seconds = Math.floor((ms % 60000) / 1000); 
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-//mÈtodos para login e register
+//mÔøΩtodos para login e register
 router.post('/register', async (req: Request, res: Response) => {
     try{
         const {nome, senha} = req.body;
-        if(!nome || !senha) return res.status(400).json({error: "Nome ou senha s„o obrigatÛrios"});
+        if(!nome || !senha) return res.status(400).json({error: "Nome ou senha s√£o obrigat√≥rios"});
 
         const userParaInserir = await buscarUsuario(nome);
 
         const {nome: nomeExistente} = userParaInserir ?? {};
 
-        if (nomeExistente) return res.status(400).json({error: "O Usu·rio j· existe"});
+        if (nomeExistente) return res.status(400).json({error: "O Usu√°rio j√° existe"});
 
         const senhaHash = await bcrypt.hash(senha, 10);
 
         const user = await criarUsuario(nome, senhaHash);
-        return res.status(201).json({message: "Usu·rio criado com sucesso!", userId: user});
+        return res.status(201).json({message: "Usu√°rio criado com sucesso!", userId: user});
 
     }catch(e: any){
         return res.status(500).json({error: e.message})
@@ -67,19 +68,19 @@ router.post('/register', async (req: Request, res: Response) => {
 router.post('/login', async (req: Request, res: Response) => {
     const {nome, senha} = req.body;
 
-    if(!nome || !senha ) return res.status(400).json({error: "… necess·rio preencher todos os campos"});
+    if(!nome || !senha ) return res.status(400).json({error: "√â necess√°rio preencher todos os campos"});
 
     try{
         const user = await buscarUsuario(nome);
 
-        if(!user) return res.status(404).json({error: "Usu·rio n„o encontrado"});
+        if(!user) return res.status(404).json({error: "Usu√∫rio n√£o encontrado"});
 
         const senhaValidada = await bcrypt.compare(senha, user.senha);
 
         if(!senhaValidada) return res.status(404).json({error: "Senha incorreta!"});
 
         if (!process.env.SECRET_KEY) {
-            throw new Error("SECRET_KEY n„o definida no ambiente");
+            throw new Error("SECRET_KEY n√£o definida no ambiente");
         }
 
         const token = jwt.sign(
@@ -94,18 +95,18 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 })
 
-//mÈtodos para musicas
+//mÔøΩtodos para musicas
 router.post('/musicas', async (req: Request, res: Response) => {
     try{
         const {musica, path: musicaPath} = req.body;
 
-        if(!musica || !musicaPath) return  res.status(400).json({error: "M˙sica ou path n„o adicionados"});
+        if(!musica || !musicaPath) return  res.status(400).json({error: "M√∫sica ou path n√£o adicionados"});
 
         const {payload, error, status} = verifyToken(req);
         if(error) return res.status(status).json({ error: error });
 
         if (!payload){
-            throw new Error('Token n„o encontrado')
+            throw new Error('Token n√£o encontrado')
         }
 
         const usuario_id = payload.id;
@@ -121,7 +122,7 @@ router.post('/musicas', async (req: Request, res: Response) => {
             usuario_id: usuario_id,
         });
         
-        return res.status(201).json({message: "M˙sica adicionada com sucesso"});
+        return res.status(201).json({message: "M√∫sica adicionada com sucesso"});
     }catch(e: any){
         return res.status(500).json({error: e.message})
     }
@@ -134,7 +135,7 @@ router.get('/musicas', async (req: Request, res: Response) => {
         if(error) return res.status(status).json({error: error});
 
         if(!payload){
-            throw new Error("Token n„o encontrado!")
+            throw new Error("Token n√£o encontrado!")
         }
 
         const idFromToken = payload.id;
@@ -149,28 +150,30 @@ router.get('/musicas', async (req: Request, res: Response) => {
 
 router.delete('/musicas', async (req: Request, res: Response) => {
     try{
-        const id = req.body;
+        const {id} = req.body;
         const { payload, error, status} = verifyToken(req);
 
         if(error) return res.status(status).json({error: error});
 
         if(!payload){
-            throw new Error("Token n„o encontrado!")
+            throw new Error("Token n√£o encontrado!")
         }
 
         const idFromToken = payload.id;
 
         const musicaDeletada = await deletarMusica(id, idFromToken);
+        console.log(id);
+        console.log(idFromToken);
 
-        if (!musicaDeletada) return res.status(404).json({error: "M˙sica n„o encontrada ou id do usu·rio n„o bate"})
+        if (!musicaDeletada) return res.status(404).json({error: "M√∫sica n√£o encontrada ou id do usu√°rio n√£o bate"})
         
-        return res.status(204).json({message: "M˙sica deletada com sucesso"});
+        return res.status(200).json({message: "M√∫sica deletada com sucesso"});
     }catch(e: any){
         return res.status(500).json({error: e.message});
     }
 })
 
-//mÈtodo para buscar musica na pasta public
+//mÔøΩtodo para buscar musica na pasta public
 router.get('/public/musicas', async (req: Request, res: Response) => {
     const musicDir = path.join(process.cwd(), "public/musicas");
     const files = fs.readdirSync(musicDir);
@@ -183,5 +186,16 @@ router.get('/public/musicas', async (req: Request, res: Response) => {
     return res.json(musicas)
 })
 
-export default router;
+router.get("/spotify", async (req, res) => {
+  try {
+    const { nome } = req.query;
+    if (!nome) return res.status(400).json({ error: "Nome da m√∫sica √© obrigat√≥rio" });
 
+    const resultados = await buscarMusica(nome as string);
+    return res.json(resultados);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+export default router;
