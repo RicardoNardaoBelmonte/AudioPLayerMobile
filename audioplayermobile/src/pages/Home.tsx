@@ -6,9 +6,11 @@ import './Home.css';
 import Modal from '../hooks/Modal';
 import { FormEvent, JSX, useState } from 'react';
 import { IMusicSpotfy } from '../../../apiMusics/interfaces';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const Home: React.FC = () => {
+  const queryClient = useQueryClient();
+
 
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [musicas, setMusicas] = useState<IMusicSpotfy[]>([]);
@@ -19,7 +21,7 @@ const Home: React.FC = () => {
           const token = localStorage.getItem("token");
 
           const res = await fetch("http://localhost:3000/api/musicas", {
-            method: "POST",
+            method: "POST", 
             headers: { Authorization: `Bearer ${token}`,  "Content-Type": "application/json" },
             body: JSON.stringify(data),
           });
@@ -27,7 +29,7 @@ const Home: React.FC = () => {
           if (!res.ok) throw new Error(json.error || "Erro ao buscar músicas");
           return json;
         },
-        onSuccess: () => alert("Música adicionada com sucesso"),
+        onSuccess: () => {alert("Música adicionada com sucesso");queryClient.invalidateQueries({ queryKey: ['musicas'] });},
         onError: (e) => alert(e.message || "Erro ao buscar músicas"),
     });
 
