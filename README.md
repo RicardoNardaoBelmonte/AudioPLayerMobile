@@ -21,27 +21,25 @@ Integrantes da Equipe: Bruno Jung, Bruno Silveira e Ricardo Belmonte
 ### 1. Como rodar localmente no Windows
 Clone o repositório: ```git clone https://github.com/RicardoNardaoBelmonte/AudioPlayer.git```
 
-Vá até o diretório: ```AudioPlayer/audioplayer```
+Vá até o diretório: ```\AudioPLayerMobile\audioplayermobile```
 
 Instale as dependências do projeto: ```npm install```
 
 ###### Será necessário colcar o arquivo .env.local na raíz do projeto, pois contém chaves de API. Solicite através da url: https://drive.google.com/file/d/1iMVs-BQAu6GjEy235172c5WgoleuWJMe/view?usp=drive_link
 <img width="350" height="218" alt="env" src="https://github.com/user-attachments/assets/1e932ca7-863f-4ffa-acf7-612df7652d06" />
 
-
-
 Execute a aplicação: ```npm run dev```
 
 Aguarde a compilação da aplicação.
 
-Após a finalização, acesse a url: ```http://localhost:3000```
+Após a finalização, acesse a url: ```http://localhost:5173/```
 
 <img width="1914" height="939" alt="image" src="https://github.com/user-attachments/assets/7719c1da-5cbd-473a-ac6f-4d4d0dcde475" />
 
 ### 2. Como rodar localmente no Linux ou usando WSL
 Clone o repositório: ```git clone https://github.com/RicardoNardaoBelmonte/AudioPlayer.git```
 
-Vá até o diretório: ```AudioPlayer/audioplayer```
+Vá até o diretório: ```\AudioPLayerMobile\audioplayermobile```
 
 No terminal, execute: ```rm -rf node_modules package-lock.json```
 
@@ -55,7 +53,7 @@ Execute a aplicação: ```npm run dev```
 
 Aguarde a compilação da aplicação.
 
-Após a finalização, acesse a url: ```http://localhost:3000```
+Após a finalização, acesse a url: ```http://localhost:5173/```
 
 # Como usar o AudioPlayer
 ### 1. Para começar a usar, é necessário criar uma conta e realizar login
