@@ -2,6 +2,7 @@ import { IonButton, IonButtons, IonHeader, IonIcon, IonToolbar } from "@ionic/re
 import hamburguer from '../../public/menu-outline.svg';
 import { IHeader } from "../interfaces/interfcaes";
 import logo from '../../public/assets/logo.png';
+import { useEffect } from "react";
 
 
 const Header: React.FC <IHeader>  = ({isOpen, setIsOpen, setVisibleFormUsuarios, setTipoFormUsuarios, setIsLogged, isLogged, nome, setNome}) => {
@@ -17,8 +18,22 @@ const Header: React.FC <IHeader>  = ({isOpen, setIsOpen, setVisibleFormUsuarios,
       localStorage.removeItem('token');
       localStorage.removeItem('nome');
       setNome("");
-      alert("Usuário deslogado com sucesso!");
+      alert("UsuÃ¡rio deslogado com sucesso!");
     }
+
+      useEffect(() => {
+        const token = localStorage.getItem("token");
+        const storedName = localStorage.getItem("nome");
+
+        if (token && storedName) {
+          setIsLogged(true);
+          setNome(storedName);
+        }else{
+          setIsLogged(false);
+          setNome("");
+        }
+      }, []);
+
 
     return(<>
       <IonHeader> 
@@ -26,7 +41,7 @@ const Header: React.FC <IHeader>  = ({isOpen, setIsOpen, setVisibleFormUsuarios,
                 <div className="grid grid-cols-3 items-center w-full h-15">
                   <div className="flex justify-start ml-2">
                     <IonButtons>
-                      <IonButton aria-label="Botão Hamburguer" className={`hamburguer transition-transform duration-300 ${ isOpen ? "rotate-180" : "-rotate-180"}`}onClick={hamburguerRotate}>
+                      <IonButton aria-label="BotÃ£o Hamburguer" className={`hamburguer transition-transform duration-300 ${ isOpen ? "rotate-180" : "-rotate-180"}`}onClick={hamburguerRotate}>
                         <IonIcon className="w-8 h-8" icon={hamburguer}/>
                       </IonButton>
                     </IonButtons>
