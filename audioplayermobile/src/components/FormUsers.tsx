@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { IonButton, IonButtons, IonInput } from "@ionic/react";
 import { useAuth } from "../hooks/useAuth";
 
-const FormUsers: React.FC<Omit<IFormUsuarios, 'setNome'>> = ({ setVisibleFormUsuarios, tipoFormUsuarios }) => {
+const FormUsers: React.FC<Omit<IFormUsuarios, 'setNome'>> = ({ setVisibleFormUsuarios, tipoFormUsuarios, setIsLogged }) => {
   const { setToken, setNome } = useAuth(); // usamos o contexto global
 
   const loginMutation = useMutation({
@@ -25,6 +25,7 @@ const FormUsers: React.FC<Omit<IFormUsuarios, 'setNome'>> = ({ setVisibleFormUsu
       setNome(data.user.nome); // atualiza o nome no contexto
       alert("Login realizado com sucesso!");
       setVisibleFormUsuarios(false);
+      setIsLogged(true);
     },
     onError: (e: any) => {
       alert(e.message || "Erro ao fazer login");
