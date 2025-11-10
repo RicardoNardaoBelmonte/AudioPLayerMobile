@@ -16,7 +16,7 @@ interface TokenPayload {
   nome: string;
 }
 
-//middleware para verifica��o de token para utilizar em login e outros m�todos que requerem token
+//middleware para verificação de token para utilizar em login e outros métodos que requerem token
 function verifyToken(req: Request) {
   const authHeader = req.headers['authorization'];
 
@@ -36,14 +36,14 @@ function verifyToken(req: Request) {
   }
 }
 
-//fun��o para converter para minutos e segundos
+//função para converter para minutos e segundos
 function msToMinutesAndSeconds(ms: number) {
     const minutes = Math.floor(ms / 60000); 
     const seconds = Math.floor((ms % 60000) / 1000); 
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-//m�todos para login e register
+//métodos para login e register
 router.post('/register', async (req: Request, res: Response) => {
     try{
         const {nome, senha} = req.body;
@@ -95,7 +95,7 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 })
 
-//m�todos para musicas
+//métodos para musicas
 router.post('/musicas', async (req: Request, res: Response) => {
     try{
         const {musica, path: musicaPath} = req.body;
@@ -173,7 +173,7 @@ router.delete('/musicas', async (req: Request, res: Response) => {
     }
 })
 
-//m�todo para buscar musica na pasta public
+//método para buscar musica na pasta public
 router.get('/public/musicas', async (req: Request, res: Response) => {
     const musicDir = path.join(process.cwd(), "public/musicas");
     const files = fs.readdirSync(musicDir);
@@ -186,6 +186,8 @@ router.get('/public/musicas', async (req: Request, res: Response) => {
     return res.json(musicas)
 })
 
+
+//método para buscar música na API do Spotify
 router.get("/spotify", async (req, res) => {
   try {
     const { nome } = req.query;
@@ -197,5 +199,19 @@ router.get("/spotify", async (req, res) => {
     return res.status(500).json({ error: e.message });
   }
 });
+
+
+//método para buscar musica na pasta public/musicas
+router.get("/musicaLocal", async (req: Request, res: Response) => {
+  const musicDir = path.join(process.cwd(), "public/musicas");
+  const files = fs.readdirSync(musicDir);
+
+  const musicas = files.map(file => ({
+    nome: file.replace(".mp3", ""),
+    path: `/musicas/${file}`,
+  }));
+  
+  return res.json(musicas);
+})
 
 export default router;

@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-*{
+* {
   box-sizing: border-box;
 }
 
@@ -8,19 +8,20 @@ ion-content {
   --background: #000000;
 }
 
-ion-header, ion-toolbar{
+ion-header,
+ion-toolbar {
   --background: #171717;
 }
 
-@theme{
+@theme {
   --color-primary: #FF00FB;
   --color-background: #171717;
   --color-textPrimary: #8C8C8C;
   --color-borderGray: #2c2c2c;
 }
 
-.hamburguer{
-    color: var(--color-primary); 
+.hamburguer {
+  color: var(--color-primary);
 }
 
 ion-button {
@@ -36,44 +37,52 @@ ion-input {
   --highlight-height: 0 !important;
 }
 
-ion-router-link{
+ion-router-link {
   --color: #2c2c2c;
 }
 
-/* @layer utilities {
+@layer utilities {
   .scrollbar-hide {
-    -ms-overflow-style: none;  
-    scrollbar-width: none;     
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
   .scrollbar-hide::-webkit-scrollbar {
-    display: none; 
+    display: none;
   }
-} */
+}
 
 
-/* #progress{
+#progress {
   -webkit-appearance: none;
+  appearance: none;
   width: 100%;
   height: 6px;
-  background: var(--color-primary);
+  background: transparent; 
   border-radius: 5px;
   cursor: pointer;
 }
 
+#progress::-webkit-slider-runnable-track {
+  height: 6px;
+  background: var(--color-primary);
+  border-radius: 5px;
+}
+
 #progress::-webkit-slider-thumb {
   -webkit-appearance: none;
+  appearance: none;
   width: 15px;
   height: 15px;
   border-radius: 50%;
   border: 8px solid #fff;
   box-shadow: 0 5px 5px rgba(255, 26, 26, 0.22);
+  margin-top: -5px; 
 }
 
-
-#volume{
+#volume {
   -webkit-appearance: none;
-  width: 100%;
+  appearance: none;
   height: 6px;
   background: var(--color-primary);
   border-radius: 5px;
@@ -82,9 +91,10 @@ ion-router-link{
 
 #volume::-webkit-slider-thumb {
   -webkit-appearance: none;
+  appearance: none;
   width: 15px;
   height: 15px;
   border-radius: 50%;
   border: 8px solid #fff;
   box-shadow: 0 5px 5px rgba(255, 26, 26, 0.22);
-} */
+}
