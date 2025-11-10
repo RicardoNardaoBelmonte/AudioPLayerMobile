@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { FooterMusicProps } from "../../../apiMusics/interfaces";
 
 import proximoLeft from "../../public/assets/proximoLeft.png";
 import proximoRight from "../../public/assets/proximoRight.png";
@@ -9,80 +9,33 @@ import soundVolume from "../../public/assets/soundVolume.png";
 import estrela from "../../public/assets/estrela.png";
 import pause from "../../public/assets/pause.png";
 
-import {
-  ImusicsDb,
-  PublicMusic,
-  PageMusicProps,
-  MusicaComAudio,
-} from "../../../apiMusics/interfaces";
-
 import { IonFooter } from "@ionic/react";
 
-const Footer: React.FC<PageMusicProps> = ({
+const Footer: React.FC<FooterMusicProps> = ({
   setActive,
   setCurrentMusic,
   currentMusic,
   play,
   setPlay,
+  selectedMusic,
+  setSelectedMusic,
+  musicasComAudio,
+  isLogged,
 }) => {
-  // 🔹 Buscar músicas públicas e do DB do usuário
-  const { data: publicMusicas = [] } = useQuery<PublicMusic[]>({
-    queryKey: ["publicMusicas"],
-    queryFn: async () => {
-      const res = await fetch("http://localhost:3000/api/musicaLocal");
-      if (!res.ok) throw new Error("Erro ao buscar músicas locais");
-      return res.json();
-    },
-  });
-
-  const { data: MusicasDb = [] } = useQuery<ImusicsDb[]>({
-    queryKey: ["musicas"],
-    queryFn: async () => {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Você precisa estar logado");
-
-      const res = await fetch("http://localhost:3000/api/musicas", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) throw new Error("Erro ao buscar músicas do usuário");
-      const musicas = await res.json();
-      return musicas.musicas;
-    },
-  });
-
-  // 🔹 Normalizador de nome
-  const normalizeName = (str: string) =>
-    str
-      .toLowerCase()
-      .replace(/\.mp3$/i, "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/\s+/g, "")
-      .replace(/[^a-z0-9]/g, "");
-
-  const BASE_URL = "http://localhost:3000/public/musicas";
-
-  // 🔹 Vincular áudio público ao DB
-  const musicasComAudio: MusicaComAudio[] = MusicasDb.map((m) => {
-    const arquivo = publicMusicas.find((p) =>
-      normalizeName(p.nome).includes(normalizeName(m.titulo))
-    );
-
-    return {
-      ...m,
-      path: arquivo
-        ? `${BASE_URL}/${
-            arquivo.nome.endsWith(".mp3") ? arquivo.nome : arquivo.nome + ".mp3"
-          }`
-        : null,
-    };
-  });
-
   const songRef = useRef<HTMLAudioElement | null>(null);
   const [randomMusic, setRandomMusic] = useState(false);
   const [volume, setVolume] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  // limpa seleção se não estiver logado ou não houver músicas
+  useEffect(() => {
+    if (!isLogged || musicasComAudio.length === 0) {
+      setSelectedMusic(null);
+      setPlay(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLogged, musicasComAudio.length]);
 
   const currentMusicObj =
     musicasComAudio.length > 0 &&
@@ -91,73 +44,94 @@ const Footer: React.FC<PageMusicProps> = ({
       ? musicasComAudio[currentMusic]
       : null;
 
-  // 🔹 Troca de música (sempre recarrega, mesmo se for a mesma)
   useEffect(() => {
-    if (!songRef.current) return;
+    if (!currentMusicObj) return;
+    setSelectedMusic((prev) => {
+      if (prev && prev.id === currentMusicObj.id) return prev;
+      return currentMusicObj;
+    });
+  }, [currentMusicObj, setSelectedMusic]);
 
+  useEffect(() => {
     const audio = songRef.current;
+    if (!audio) return;
+
     audio.pause();
 
     if (!currentMusicObj?.path) {
       audio.src = "";
       setPlay(false);
       setCurrentTime(0);
-      alert("Esta música não possui áudio disponível.");
+      setDuration(0);
       return;
     }
 
-    // 🔸 Forçar reload mesmo que o src seja o mesmo
-    audio.src = currentMusicObj.path;
+    if (audio.src !== currentMusicObj.path) {
+      audio.src = currentMusicObj.path;
+    }
     audio.load();
     setCurrentTime(0);
+    setDuration(0);
 
     audio
       .play()
       .then(() => setPlay(true))
-      .catch((e) => console.error("Erro ao tocar música:", e));
+      .catch(() => {
+        setPlay(false);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentMusicObj?.path, currentMusic]);
 
-  // 🔹 Controla play/pause manual
   useEffect(() => {
-    if (!songRef.current) return;
-
     const audio = songRef.current;
+    if (!audio) return;
+
     if (play) {
       if (!currentMusicObj?.path) {
-        alert("Esta música não possui áudio disponível.");
         setPlay(false);
         return;
       }
-      audio.play().catch((e) => console.error("Erro ao tocar música:", e));
+      audio.play().catch(() => {
+        setPlay(false);
+      });
     } else {
       audio.pause();
     }
-  }, [play]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [play, currentMusicObj?.path]);
 
-  // 🔹 Volume
   useEffect(() => {
-    if (songRef.current) {
-      songRef.current.volume = volume;
-    }
+    if (songRef.current) songRef.current.volume = volume;
   }, [volume]);
 
-  // 🔹 Atualizar progresso
   useEffect(() => {
-    if (!songRef.current) return;
     const audio = songRef.current;
-    const updateProgress = () => setCurrentTime(audio.currentTime);
-    audio.addEventListener("timeupdate", updateProgress);
-    return () => audio.removeEventListener("timeupdate", updateProgress);
-  }, [currentMusic]);
+    if (!audio) return;
+
+    const onTimeUpdate = () => setCurrentTime(audio.currentTime);
+    const onLoadedMeta = () => {
+      setDuration(audio.duration || 0);
+      setCurrentTime(audio.currentTime || 0);
+    };
+
+    audio.addEventListener("timeupdate", onTimeUpdate);
+    audio.addEventListener("loadedmetadata", onLoadedMeta);
+
+    return () => {
+      audio.removeEventListener("timeupdate", onTimeUpdate);
+      audio.removeEventListener("loadedmetadata", onLoadedMeta);
+    };
+  }, [currentMusicObj?.path]);
 
   const formatTime = (time: number) => {
+    if (!time || isNaN(time) || !isFinite(time)) return "0:00";
     const min = Math.floor(time / 60);
     const sec = Math.floor(time % 60);
     return `${min}:${sec < 10 ? "0" : ""}${sec}`;
   };
 
   const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTime = parseFloat(e.target.value);
+    const newTime = Number(e.target.value) || 0;
     if (songRef.current) songRef.current.currentTime = newTime;
     setCurrentTime(newTime);
   };
@@ -167,109 +141,116 @@ const Footer: React.FC<PageMusicProps> = ({
       alert("Esta música não possui áudio disponível.");
       return;
     }
-    setPlay((prev) => !prev);
+    setPlay((p) => !p);
   };
 
   const handleNext = () => {
     if (!musicasComAudio.length) return;
-
     let nextIndex = currentMusic;
     if (randomMusic) {
       nextIndex = Math.floor(Math.random() * musicasComAudio.length);
     } else {
       nextIndex = (currentMusic + 1) % musicasComAudio.length;
     }
-
-    // 🔸 Atualiza mesmo se for a mesma faixa
     setCurrentMusic(nextIndex);
+    // se próxima não tiver audio, desliga play e avisa
+    if (!musicasComAudio[nextIndex].path) {
+      setPlay(false);
+      alert("A próxima música não possui áudio disponível.");
+    }
   };
 
   const handlePrev = () => {
     if (!musicasComAudio.length) return;
-
-    let prevIndex =
+    const prevIndex =
       currentMusic === 0 ? musicasComAudio.length - 1 : currentMusic - 1;
     setCurrentMusic(prevIndex);
+    if (!musicasComAudio[prevIndex].path) {
+      setPlay(false);
+      alert("A música anterior não possui áudio disponível.");
+    }
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = parseFloat(e.target.value);
+    const newVolume = Number(e.target.value) || 0;
     setVolume(newVolume);
   };
 
-  const handleRandomMusic = () => setRandomMusic((prev) => !prev);
+  const handleRandomMusic = () => setRandomMusic((r) => !r);
+
   const onEndedRandom = () => handleNext();
+
+  // Mensagens quando não logado ou sem músicas
+  if (!isLogged) {
+    return (
+      <IonFooter className="bg-background rounded-lg py-4 px-4 mb-5">
+        <div className="flex items-center justify-center p-3 text-white">
+          Você precisa estar logado para ver suas músicas.
+        </div>
+      </IonFooter>
+    );
+  }
 
   if (musicasComAudio.length === 0) {
     return (
-      <footer className="bg-background rounded-lg p-4 text-white text-center">
-        Carregando músicas...
-      </footer>
+      <IonFooter className="bg-background rounded-lg py-4 px-4 mb-5">
+        <div className="flex items-center justify-center p-3 text-white">
+          Você não tem músicas.
+        </div>
+      </IonFooter>
     );
   }
 
   return (
-    <IonFooter className="bg-background rounded-lg pt-1 px-2 mb-10">
+    <IonFooter className="bg-background rounded-lg py-1 px-2 mb-5">
       <audio ref={songRef} onEnded={onEndedRandom} />
 
       <div className="flex flex-col">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
           {/* Capa + Info */}
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <button className="cursor-pointer shrink-0" onClick={() => setActive(true)}>
+            <button
+              className="cursor-pointer shrink-0"
+              onClick={() => setActive(true)}
+            >
               <img
-                className="w-16 h-16 object-cover rounded-md"
-                src={currentMusicObj?.thumb || "/assets/default-cover.png"}
-                alt={currentMusicObj?.titulo || "Capa da música"}
+                className="w-10 h-10 object-cover rounded-md"
+                src={
+                  selectedMusic?.thumb ||
+                  currentMusicObj?.thumb ||
+                  "/assets/default-cover.png"
+                }
+                alt={
+                  selectedMusic?.titulo ||
+                  currentMusicObj?.titulo ||
+                  "Capa da música"
+                }
               />
             </button>
 
             <div className="flex flex-col truncate">
-              <span className="text-white text-sm font-semibold truncate">
-                {currentMusicObj?.titulo || "Título desconhecido"}
+              <span className="text-white text-sm font-semibold ">
+                {selectedMusic?.titulo ||
+                  currentMusicObj?.titulo ||
+                  "Título desconhecido"}
               </span>
-              <span className="text-xs text-gray-300 truncate">
-                {currentMusicObj?.artista || "Artista desconhecido"}
+
+              <span className="text-xs text-gray-300 ">
+                {selectedMusic?.artista ||
+                  currentMusicObj?.artista ||
+                  "Artista desconhecido"}
               </span>
             </div>
 
             <button className="cursor-pointer shrink-0" title="Favoritar">
-              <img src={estrela} alt="Favoritar" />
-            </button>
-          </div>
-
-          {/* Controles */}
-          <div className="flex items-center gap-4">
-            <button
-              className={`cursor-pointer ${randomMusic ? "opacity-100" : "opacity-50"}`}
-              onClick={handleRandomMusic}
-              title="Aleatório"
-            >
-              <img className="w-6 h-6" src={loop} alt="Aleatório" />
-            </button>
-
-            <button onClick={handlePrev} title="Anterior">
-              <img className="w-6 h-6" src={proximoLeft} alt="Anterior" />
-            </button>
-
-            <button onClick={handlePlay} title={play ? "Pausar" : "Tocar"}>
-              <img
-                className="w-10 h-10"
-                src={play ? pause : playButton}
-                alt="Play/Pause"
-              />
-            </button>
-
-            <button onClick={handleNext} title="Próxima">
-              <img className="w-6 h-6" src={proximoRight} alt="Próxima" />
+              <img src={estrela} alt="Favoritar" className="w-3 h-3" />
             </button>
           </div>
 
           {/* Volume */}
           <div className="flex items-center gap-1">
-            <span className="text-xs text-white">{Math.round(volume * 100)}%</span>
             <div className="relative group flex items-center w-20">
-              <img className="w-6 h-6" src={soundVolume} alt="Volume" />
+              <img className="w-4 h-4" src={soundVolume} alt="Volume" />
               <input
                 type="range"
                 min={0}
@@ -277,26 +258,61 @@ const Footer: React.FC<PageMusicProps> = ({
                 step={0.01}
                 value={volume}
                 onChange={handleVolumeChange}
-                className="absolute opacity-0 group-hover:opacity-100 ml-8 w-24 cursor-pointer"
+                className="absolute w-15 !ml-5"
+                id="volume"
               />
             </div>
           </div>
         </div>
 
-        {/* Progresso */}
+        {/* Controles */}
+        <div className="flex items-center gap-4 justify-center mt-2">
+          <button
+            className={`cursor-pointer ${
+              randomMusic ? "opacity-100" : "opacity-50"
+            }`}
+            onClick={handleRandomMusic}
+            title="Aleatório"
+          >
+            <img className="w-4 h-4" src={loop} alt="Aleatório" />
+          </button>
+
+          <button onClick={handlePrev} title="Anterior">
+            <img className="w-4 h-4" src={proximoLeft} alt="Anterior" />
+          </button>
+
+          <button onClick={handlePlay} title={play ? "Pausar" : "Tocar"}>
+            <img
+              className="w-4 h-4"
+              src={play ? pause : playButton}
+              alt="Play/Pause"
+            />
+          </button>
+
+          <button onClick={handleNext} title="Próxima">
+            <img className="w-4 h-4" src={proximoRight} alt="Próxima" />
+          </button>
+        </div>
+
+        {/* Barra de Progresso */}
         <div className="flex items-center gap-2 mt-2">
-          <span className="text-xs text-white w-8 text-center">{formatTime(currentTime)}</span>
+          <span className="text-xs text-white w-8 text-center">
+            {formatTime(currentTime)}
+          </span>
+
           <input
+            id="progress"
             type="range"
             min={0}
-            max={songRef.current?.duration || 0}
+            max={duration || 0}
             step={0.01}
             value={currentTime}
             onChange={handleProgressChange}
-            className="flex-1 cursor-pointer"
+            className="flex-1"
           />
+
           <span className="text-xs text-white w-8 text-center">
-            {formatTime(songRef.current?.duration || 0)}
+            {formatTime(duration)}
           </span>
         </div>
       </div>

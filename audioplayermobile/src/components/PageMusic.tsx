@@ -1,213 +1,230 @@
-import { useQuery } from "@tanstack/react-query";
-import {useRef, useState, useEffect } from "react";
-import proximoLeft from '../../public/assets/proximoLeft.png';
-import proximoRight from '../../public/assets/proximoRight.png';
-import playButton from '../../public/assets/playButton.png';
-import loop from '../../public/assets/loop.png';
-import soundVolume from '../../public/assets/soundVolume.png';
-import pause from '../../public/assets/pause.png';
-import voltar from '../../public/assets/voltar.png';
+import { useEffect, useRef, useState } from "react";
+import { PageMusicProps } from "../../../apiMusics/interfaces";
 
+import proximoLeft from "../../public/assets/proximoLeft.png";
+import proximoRight from "../../public/assets/proximoRight.png";
+import playButton from "../../public/assets/playButton.png";
+import loop from "../../public/assets/loop.png";
+import soundVolume from "../../public/assets/soundVolume.png";
+import pause from "../../public/assets/pause.png";
+import voltar from "../../public/assets/voltar.png";
 
-export default function PageMusic({active, setActive, setCurrentMusic, currentMusic, play, setPlay}) {
+const PageMusic: React.FC<PageMusicProps> = ({
+  setActive,
+  setCurrentMusic,
+  currentMusic,
+  play,
+  setPlay,
+  selectedMusic,
+  setSelectedMusic,
+  musicasComAudio 
+}) => {
+  const song = useRef<HTMLAudioElement | null>(null);
 
-    const {data: publicMusicas = []} = useQuery({
-        queryKey: ['publicMusicas'],
-        queryFn: async () => {
+  const [randomMusic, setRandomMusic] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [volume, setVolume] = useState(1);
 
-            const res = await fetch('/api/publicMusicas',)
+  useEffect(() => {
+    if (
+      musicasComAudio &&
+      musicasComAudio.length > 0 &&
+      currentMusic >= 0 &&
+      currentMusic < musicasComAudio.length
+    ) {
+      setSelectedMusic(musicasComAudio[currentMusic]);
+    }
+  }, [currentMusic, musicasComAudio, selectedMusic, setSelectedMusic]);
 
-            if(!res.ok) throw new Error("Erro ao buscar músicas do usuário");
-            const publicMusicas = await res.json();
-            return publicMusicas;
-        }
-    })
+  useEffect(() => {
+    const audio = song.current;
+    if (!audio || !selectedMusic?.path) return;
 
-    const {data: MusicasDb = []} = useQuery({
-        queryKey: ['musicas'],
-        queryFn: async () => {
+    audio.pause();
+    audio.src = selectedMusic.path;
+    audio.load();
 
-            const token = localStorage.getItem('token');
-
-            if (!token) throw new Error("Você precisa estar Logado");
-
-            const res = await fetch('/api/musicas', {
-                headers: { Authorization: `Bearer ${token}`}
-            });
-
-            if(!res.ok) throw new Error("Erro ao buscar músicas do usuário");
-            const musicas = await res.json();
-            return musicas.musicas;
-        }
-    })
-
-    const musicasComAudio = MusicasDb.map(m => {
-        const arquivo = publicMusicas.find(p => p.nome.includes(m.path));
-        return {
-          ...m,
-          path: arquivo?.path || null,
-        };
-    });
-
-    const progress = useRef(null);
-    const song = useRef(null);
-    const playControl  = useRef(null);
-    const [randomMusic, setRandomMusic] = useState(false);
-    const [volume, setVolume] = useState(1);
-    const [currentTime, setCurrentTime] = useState(0);
-
-    useEffect(() => {
-        if (!song.current) return;
-    
-        song.current.pause();
-        song.current.load();
-    
-        if (play) song.current.play();
-
-
-    }, [currentMusic, play]);
-
-    useEffect(() => {
-        if (!song.current) return;
-    
-        const audio = song.current;
-    
-        // Função para atualizar o currentTime
-        const updateProgress = () => setCurrentTime(audio.currentTime);
-    
-        // Atualiza imediatamente ao dar play, não espera o primeiro evento
-        if (!audio.paused) {
-            setCurrentTime(audio.currentTime);
-        }
-    
-        // Adiciona listener
-        audio.addEventListener('timeupdate', updateProgress);
-    
-        return () => audio.removeEventListener('timeupdate', updateProgress);
-    }, [currentMusic, play]);
-    
-    
-    
-    function handleProgressChange(e) {
-        const newTime = parseFloat(e.target.value);
-        if(song.current) {
-             song.current.currentTime = newTime;
-        }
-        setCurrentTime(newTime);
+    if (play) {
+      audio.play().catch(() => setPlay(false));
     }
 
-    function handlePlay(){
-        setPlay(prev => {
-            const newState = !prev;  
-            if(newState){
-                song.current.play();
-            }else{
-                song.current.pause();
-            }
+    setCurrentTime(0);
+  }, [selectedMusic, setPlay, play]);
 
-            return newState;
-        });
+  useEffect(() => {
+    const audio = song.current;
+    if (!audio) return;
+
+    if (play) {
+      audio.play().catch(() => setPlay(false));
+    } else {
+      audio.pause();
     }
+  }, [play, setPlay]);
+
+  useEffect(() => {
+    if (song.current) song.current.volume = volume;
+  }, [volume]);
+
+  useEffect(() => {
+    const audio = song.current;
+    if (!audio) return;
+
+    const update = () => setCurrentTime(audio.currentTime);
+    audio.addEventListener("timeupdate", update);
+    return () => audio.removeEventListener("timeupdate", update);
+  }, []);
+
+    function handlePlay() {
+    if (!selectedMusic?.path) {
+        alert("Esta música não possui áudio disponível.");
+        return;
+    }
+    setPlay((prev) => !prev);
+    }
+
+  function handleProgressChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const newTime = Number(e.target.value);
+    setCurrentTime(newTime);
+    if (song.current) song.current.currentTime = newTime;
+  }
+
+  function handleVolumeChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const v = parseFloat(e.target.value);
+    setVolume(v);
+  }
 
     function handleNext() {
-        if(randomMusic){
-            setCurrentMusic(Math.floor(Math.random() * musicasComAudio.length));
-        } else {
-            setCurrentMusic(prev => (prev + 1) % musicasComAudio.length);
-        }
+    if (!musicasComAudio.length) return;
+    const nextIndex = (currentMusic + 1) % musicasComAudio.length;
+    setCurrentMusic(nextIndex);
+    setSelectedMusic(musicasComAudio[nextIndex]);
+    if (!musicasComAudio[nextIndex].path) {
+        setPlay(false);
+        alert("A próxima música não possui áudio disponível.");
     }
-    
+    }
 
     function handlePrev() {
-        setCurrentMusic(prev => prev === 0 ? musicasComAudio.length - 1 : prev - 1);
+    if (!musicasComAudio.length) return;
+    const prevIndex =
+        currentMusic === 0 ? musicasComAudio.length - 1 : currentMusic - 1;
+    setCurrentMusic(prevIndex);
+    setSelectedMusic(musicasComAudio[prevIndex]);
+    if (!musicasComAudio[prevIndex].path) {
+        setPlay(false);
+        alert("A música anterior não possui áudio disponível.");
     }
-    
-    function handleVolumeChange(e) {
-        const newVolume = parseFloat(e.target.value); 
-        setVolume(newVolume);
-        if (song.current) song.current.volume = newVolume;
-    }
-
-    function handleRandomMusic() {
-        setRandomMusic(prev => {
-            const newRandom = !prev;
-            if(newRandom && musicasComAudio.length > 0){
-                setCurrentMusic(Math.floor(Math.random() * musicasComAudio.length));
-            }
-            return newRandom;
-        });
-    }
-    
-    function onEndedRandom(){
-        if(randomMusic){
-            setCurrentMusic(Math.floor(Math.random() * musicasComAudio.length));
-        } else {
-            setCurrentMusic(prev => (prev + 1) % musicasComAudio.length);
-        }
-    }
-    
-    return(
-        <div className="mt-30 h-[80vh] bg-background mx-5 md:mx-10 lg:mx-42 xl:mx-72 2xl:mx-96 min-w-56 relative">
-
-            <button onClick={() => setActive(false)} className="absolute top-5 left-5 cursor-pointer p-2 rounded" aria-label="go-back button">
-                <Image src={voltar} alt="Voltar" width={40} height={15}/>
-            </button>
-            
-            {musicasComAudio[0]?.path && (
-                <audio onEnded={() => onEndedRandom()} ref={song} id='song'>
-                    <source  src={musicasComAudio[currentMusic]?.path || ""} type="audio/mpeg"  />
-                </audio>
-            )}
-
-            {musicasComAudio.length > 0 &&(
-                <div key={musicasComAudio[currentMusic].titulo} className="flex flex-col">
-                <div className="flex flex-col justify-center text-center text-white mt-5 gap-2">
-                    <span className="text-base xl:text-lg">{musicasComAudio[currentMusic].titulo}</span>
-                    <span className="text-gray-400 texte-base">{musicasComAudio[currentMusic].artista}</span>
-                </div>
-
-                <div className="flex justify-center mt-10">
-                    <Image className="rounded" src={musicasComAudio[currentMusic].thumb} alt={musicasComAudio[currentMusic].titulo} width={300} height={100}/>
-                </div>
-
-                <div className="text-gray-400 text-base flex justify-center mt-5">
-                    <span>{musicasComAudio[currentMusic].duracao}</span>
-                </div>
-
-                <div className="min-w-[18rem] xl:w-[30rem] flex align-center justify-center mx-auto mt-5">
-                    <input alt="music progress" type='range' min={0} max={song.current?.duration || 0} step={0.01} value={currentTime} className='' id='progress' ref={progress} onChange={handleProgressChange}/>
-                </div>
-
-
-                <div className="flex items-center mt-15 justify-center relative">
-
-                    <div className="flex gap-15 lg:gap-28">
-                        <button className="cursor-pointer" onClick={() => handleRandomMusic()} aria-label="random music">
-                            <img className="w-5 h-5" src={loop} alt="aleatório" loading="lazy" />
-                        </button>
-
-                        <button className="cursor-pointer" onClick={() => handlePrev()} aria-label="prev music">
-                            <img className="w-6 h-6" src={proximoLeft} alt="Anterior" loading="lazy"/>
-                        </button>
-
-                        <button className="cursor-pointer" ref={playControl} onClick={() => handlePlay()} aria-label="play and pause">
-                            <img className="w-10 h-10" src={ play ? pause : playButton} alt="Play"loading="lazy" />
-                        </button>
-
-                        <button className="cursor-pointer" onClick={() => handleNext()} aria-label="next music">
-                            <img className="w-6 h-6" src={proximoRight} alt="Próxima" loading="lazy"/>
-                        </button>
-                    </div>
-
-                    <div className='relative group absolute -right-10  md:-right-13 xl:-right-24 flex items-center w-20'>
-                        <button className="cursor-pointer relative flex items-center gap-2" aria-label="sound volume">
-                            <img className="w-6 h-6" src={soundVolume} alt="Volume" />
-                        </button>
-                        <input alt="sound volume bar" type="range" min={0} max={1} step={0.01} value={volume} onChange={handleVolumeChange} className="absolute opacity-0 group-hover:opacity-100 ml-8" id='volume'/>
-                    </div>
-                </div>
-                </div>
-            )}
-        </div>
-    )
 }
+
+  function handleRandomMusic() {
+    setRandomMusic((prev) => !prev);
+  }
+
+    function onEndedRandom() {
+    if (randomMusic && musicasComAudio.length > 0) {
+        const randIndex = Math.floor(Math.random() * musicasComAudio.length);
+        setCurrentMusic(randIndex);
+        setSelectedMusic(musicasComAudio[randIndex]);
+        if (!musicasComAudio[randIndex].path) {
+        setPlay(false);
+        alert("A música sorteada não possui áudio disponível.");
+        }
+    } else {
+        handleNext();
+    }
+    }
+
+  return (
+    <div className="fixed inset-0 bg-background flex flex-col items-center justify-center z-50">
+      <button
+        onClick={() => setActive(false)}
+        className="absolute top-5 left-5 cursor-pointer p-2 rounded"
+      >
+        <img src={voltar} alt="Voltar" width={40} height={15} />
+      </button>
+
+      <audio onEnded={onEndedRandom} ref={song}>
+        <source src={selectedMusic?.path ?? ""} type="audio/mpeg" />
+      </audio>
+
+      <div className="w-full h-full flex flex-col items-center justify-center px-5">
+        <div className="flex flex-col items-center mb-7">
+          <img
+            src={selectedMusic?.thumb ?? ""}
+            alt="Capa"
+            className="w-56 h-56 rounded-lg object-cover"
+          />
+          <p className="text-white text-xl font-bold mt-4">
+            {selectedMusic?.titulo}
+          </p>
+          <p className="text-sm text-textPrimary text-center">
+            {selectedMusic?.artista}
+          </p>
+        </div>
+
+        <div className="w-full flex flex-col gap-2 mt-2">
+          <input
+            id="progress"
+            type="range"
+            min={0}
+            value={currentTime}
+            max={song.current?.duration ?? 0}
+            onChange={handleProgressChange}
+            className="flex-1"
+          />
+        </div>
+
+        <div className="flex items-center justify-between w-full mt-5">
+          <button onClick={handleRandomMusic} className="flex !pl-5 w-1/3">
+            <img
+              src={loop}
+              alt="Aleatório"
+              width={20}
+              height={20}
+              style={{ opacity: randomMusic ? 1 : 0.3 }}
+            />
+          </button>
+
+          <div className="flex items-center gap-5 justify-center w-1/3">
+            <button onClick={handlePrev}>
+              <img src={proximoLeft} alt="Anterior" width={20} height={20} />
+            </button>
+
+            <button onClick={handlePlay}>
+              <img
+                src={play ? pause : playButton}
+                alt="Play Pause"
+                width={35}
+                height={35}
+              />
+            </button>
+
+            <button onClick={handleNext}>
+              <img src={proximoRight} alt="Próxima" width={20} height={20} />
+            </button>
+          </div>
+
+          <div className="flex pl-7 w-1/3">
+            <div className="relative group flex items-center gap5">
+              <img className="w-4 h-4" src={soundVolume} alt="Volume" />
+
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                value={volume}
+                onChange={handleVolumeChange}
+                className="absolute w-13 !ml-5"
+                id="volume"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default PageMusic;
