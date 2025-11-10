@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "license": "ISC",
-  "author": "",
   "type": "module",
-  "main": "db.js",
+  "main": "dist/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node dist/server.js",
-    "build": "tsc"
+    "dev": "ts-node-dev --respawn --transpile-only server.ts",
+    "build": "tsc && npm run copy-public",
+    "copy-public": "node scripts/copyPublic.js",
+    "start": "node dist/server.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -17,7 +17,8 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "react": "^19.2.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -26,6 +27,8 @@
     "@types/express": "^5.0.5",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.10.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3"
