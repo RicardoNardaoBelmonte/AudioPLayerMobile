@@ -4,7 +4,7 @@ import { IHeader } from "../interfaces/interfcaes";
 import logo from '../../public/assets/logo.png';
 import { useAuth } from "../hooks/useAuth";
 
-const Header: React.FC<Omit<IHeader, 'nome' | 'setNome'>> = ({ isOpen, setIsOpen, setVisibleFormUsuarios, setTipoFormUsuarios }) => {
+const Header: React.FC<Omit<IHeader, 'nome' | 'setNome'>> = ({ isOpen, setIsOpen, setVisibleFormUsuarios, setTipoFormUsuarios, setIsLogged}) => {
   const { token, nome, setToken, setNome } = useAuth(); // usamos o contexto global
 
   function hamburguerRotate(e: React.MouseEvent<HTMLIonButtonElement>) {
@@ -19,6 +19,7 @@ const Header: React.FC<Omit<IHeader, 'nome' | 'setNome'>> = ({ isOpen, setIsOpen
     localStorage.removeItem('token');
     localStorage.removeItem('nome');
     alert("Usuário deslogado com sucesso!");
+    setIsLogged(false);
   }
 
   return (
