@@ -15,7 +15,7 @@ const SatandardBody: React.FC<{children?: React.ReactNode}> = ({children}) => {
   ]
 
   return (
-    <div className="mt-10 flex flex-col justify-center items-center"  id="container">
+    <div className="mt-15 flex flex-col justify-center items-center"  id="container">
         <div className="flex gap-5">
           {navgationLinks.map((link) => (
               <IonRouterLink  key={link.name} routerLink={link.path} className='bg-background py-2 px-5 rounded-lg border boder-borderGray'>

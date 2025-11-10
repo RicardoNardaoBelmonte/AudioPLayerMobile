@@ -14,7 +14,6 @@ const Home: React.FC = () => {
 
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [musicas, setMusicas] = useState<IMusicSpotfy[]>([]);
-  console.log(musicas);
 
    const adicionarMutation = useMutation({
         mutationFn: async (data: {musica: IMusicSpotfy, path: string}) => {
