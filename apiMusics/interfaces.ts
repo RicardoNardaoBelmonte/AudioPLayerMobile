@@ -42,15 +42,6 @@ export interface ImusicsDb {
     duracao: string;
     usuario_id: number;
 }
-
-export interface PageMusicProps {
-  setActive: Dispatch<SetStateAction<boolean>>;
-  setCurrentMusic: Dispatch<SetStateAction<number>>;
-  currentMusic: number;
-  play: boolean;
-  setPlay :Dispatch<SetStateAction<boolean>>;
-}
-
 export interface PublicMusic {
   nome: string;
   path: string;
@@ -75,4 +66,27 @@ export interface IFavs {
   setActive: Dispatch<SetStateAction<boolean>>;
   setCurrentMusic: Dispatch<SetStateAction<number>>;
   setPlay :Dispatch<SetStateAction<boolean>>;
+}
+
+export interface PageMusicProps {
+  setActive: Dispatch<SetStateAction<boolean>>;
+  currentMusic: number;
+  setCurrentMusic: Dispatch<SetStateAction<number>>;
+  selectedMusic: MusicaComAudio | null;
+  setSelectedMusic: Dispatch<SetStateAction<MusicaComAudio | null>>;
+  play: boolean;
+  setPlay: Dispatch<SetStateAction<boolean>>;
+  musicasComAudio: MusicaComAudio[]; // ADICIONADO
+}
+
+export interface FooterMusicProps {
+  currentMusic: number;
+  setCurrentMusic: Dispatch<SetStateAction<number>>;
+  selectedMusic: MusicaComAudio | null;
+  setSelectedMusic: Dispatch<SetStateAction<MusicaComAudio | null>>;
+  play: boolean;
+  setPlay: Dispatch<SetStateAction<boolean>>;
+  setActive: Dispatch<SetStateAction<boolean>>;
+  musicasComAudio: MusicaComAudio[]; // ADICIONADO
+  isLogged: boolean; // ADICIONADO
 }
